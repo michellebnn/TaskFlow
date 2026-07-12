@@ -4,8 +4,8 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -14,8 +14,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+interface AuthenticatedUser {
+  id: number;
+  name: string;
+  email: string;
+}
+
 interface LoginResponse {
   access_token: string;
+  user: AuthenticatedUser;
 }
 
 @Component({
@@ -61,7 +68,16 @@ export class Login {
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response) => {
-          localStorage.setItem('taskflow_access_token', response.access_token);
+          localStorage.setItem(
+            'taskflow_access_token',
+            response.access_token,
+          );
+
+          localStorage.setItem(
+            'taskflow_user',
+            JSON.stringify(response.user),
+          );
+
           void this.router.navigate(['/dashboard']);
         },
         error: () => {

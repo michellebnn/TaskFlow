@@ -1,1 +1,79 @@
-<p>dashboard works!</p>
+<div class="dashboard-layout">
+  <app-sidebar />
+
+  <div class="main-area">
+    <app-header />
+
+    <main class="dashboard-content">
+      <section class="welcome">
+        <h2>Olá, {{ currentUser().name }} 👋</h2>
+        <p>Veja um resumo do seu espaço de trabalho.</p>
+      </section>
+
+      @if (loading()) {
+        <p class="status-message">Carregando dados...</p>
+      } @else if (errorMessage()) {
+        <p class="error-message">{{ errorMessage() }}</p>
+      } @else {
+        <section class="summary-grid">
+          <mat-card class="summary-card">
+            <div class="card-icon">
+              <mat-icon>folder</mat-icon>
+            </div>
+
+            <div>
+              <span>Projetos</span>
+              <strong>{{ summary().projects }}</strong>
+            </div>
+          </mat-card>
+
+          <mat-card class="summary-card">
+            <div class="card-icon">
+              <mat-icon>pending_actions</mat-icon>
+            </div>
+
+            <div>
+              <span>Tarefas pendentes</span>
+              <strong>{{ summary().pendingTasks }}</strong>
+            </div>
+          </mat-card>
+
+          <mat-card class="summary-card">
+            <div class="card-icon">
+              <mat-icon>sync</mat-icon>
+            </div>
+
+            <div>
+              <span>Em andamento</span>
+              <strong>{{ summary().inProgressTasks }}</strong>
+            </div>
+          </mat-card>
+
+          <mat-card class="summary-card">
+            <div class="card-icon">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+
+            <div>
+              <span>Concluídas</span>
+              <strong>{{ summary().completedTasks }}</strong>
+            </div>
+          </mat-card>
+        </section>
+      }
+
+      <mat-card class="recent-card">
+        <h3>Atividade recente</h3>
+
+        <div class="activity">
+          <mat-icon>task_alt</mat-icon>
+
+          <div>
+            <strong>Criar tela de Login</strong>
+            <p>Tarefa criada no projeto TaskFlow.</p>
+          </div>
+        </div>
+      </mat-card>
+    </main>
+  </div>
+</div>

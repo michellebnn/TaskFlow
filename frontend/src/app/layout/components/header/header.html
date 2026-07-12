@@ -1,0 +1,29 @@
+<header class="header">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Acompanhe seus projetos e tarefas.</p>
+  </div>
+
+  <div class="header-actions">
+    <div class="user">
+      <div class="avatar">
+        {{ currentUser().name.charAt(0).toUpperCase() }}
+      </div>
+
+      <div class="user-info">
+        <strong>{{ currentUser().name }}</strong>
+        <span>{{ currentUser().email }}</span>
+      </div>
+    </div>
+
+    <button
+      mat-icon-button
+      type="button"
+      aria-label="Sair"
+      title="Sair"
+      (click)="logout()"
+    >
+      <mat-icon>logout</mat-icon>
+    </button>
+  </div>
+</header>

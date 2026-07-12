@@ -8,15 +8,15 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 export class ProjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createProjectDto: CreateProjectDto) {
+  async create(
+    createProjectDto: CreateProjectDto,
+    userId: number,
+  ) {
     return this.prisma.project.create({
       data: {
         name: createProjectDto.name,
         description: createProjectDto.description,
-
-        // Temporário.
-        // Depois vamos pegar o usuário através do JWT.
-        userId: 2,
+        userId,
       },
       include: {
         user: {
@@ -30,8 +30,11 @@ export class ProjectsService {
     });
   }
 
-  async findAll() {
+  async findAll(userId: number) {
     return this.prisma.project.findMany({
+      where: {
+        userId,
+      },
       include: {
         user: {
           select: {
@@ -41,12 +44,18 @@ export class ProjectsService {
           },
         },
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 
-  async findOne(id: number) {
-    const project = await this.prisma.project.findUnique({
-      where: { id },
+  async findOne(id: number, userId: number) {
+    const project = await this.prisma.project.findFirst({
+      where: {
+        id,
+        userId,
+      },
       include: {
         user: {
           select: {
@@ -65,11 +74,17 @@ export class ProjectsService {
     return project;
   }
 
-  async update(id: number, updateProjectDto: UpdateProjectDto) {
-    await this.findOne(id);
+  async update(
+    id: number,
+    updateProjectDto: UpdateProjectDto,
+    userId: number,
+  ) {
+    await this.findOne(id, userId);
 
     return this.prisma.project.update({
-      where: { id },
+      where: {
+        id,
+      },
       data: updateProjectDto,
       include: {
         user: {
@@ -83,11 +98,13 @@ export class ProjectsService {
     });
   }
 
-  async remove(id: number) {
-    await this.findOne(id);
+  async remove(id: number, userId: number) {
+    await this.findOne(id, userId);
 
     await this.prisma.project.delete({
-      where: { id },
+      where: {
+        id,
+      },
     });
 
     return {
