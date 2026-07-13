@@ -1,1 +1,170 @@
-<p>projects-list works!</p>
+<div class="projects-layout">
+  <app-sidebar />
+
+  <div class="main-area">
+    <app-header />
+
+    <main class="projects-content">
+      <section class="page-header">
+        <div>
+          <h2>Projetos</h2>
+          <p>Gerencie seus projetos e acompanhe o trabalho da equipe.</p>
+        </div>
+
+        <button
+          mat-flat-button
+          type="button"
+          (click)="openCreateForm()"
+        >
+          <mat-icon>add</mat-icon>
+          Novo projeto
+        </button>
+      </section>
+
+      @if (errorMessage()) {
+        <p class="error-message">{{ errorMessage() }}</p>
+      }
+
+      @if (showForm()) {
+        <mat-card class="project-form-card">
+          <div class="form-header">
+            <h3>
+              {{ editingProjectId() ? 'Editar projeto' : 'Novo projeto' }}
+            </h3>
+
+            <button
+              mat-icon-button
+              type="button"
+              aria-label="Fechar"
+              (click)="closeForm()"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <form
+            [formGroup]="projectForm"
+            (ngSubmit)="saveProject()"
+          >
+            <mat-form-field appearance="outline">
+              <mat-label>Nome</mat-label>
+
+              <input
+                matInput
+                type="text"
+                formControlName="name"
+              />
+
+              @if (
+                projectForm.controls.name.touched &&
+                projectForm.controls.name.hasError('required')
+              ) {
+                <mat-error>Informe o nome do projeto.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Descrição</mat-label>
+
+              <textarea
+                matInput
+                rows="4"
+                formControlName="description"
+              ></textarea>
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button
+                mat-button
+                type="button"
+                (click)="closeForm()"
+              >
+                Cancelar
+              </button>
+
+              <button
+                mat-flat-button
+                type="submit"
+                [disabled]="saving()"
+              >
+                @if (saving()) {
+                  <mat-spinner diameter="22"></mat-spinner>
+                } @else {
+                  Salvar
+                }
+              </button>
+            </div>
+          </form>
+        </mat-card>
+      }
+
+      @if (loading()) {
+        <div class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <span>Carregando projetos...</span>
+        </div>
+      } @else if (projects().length === 0) {
+        <mat-card class="empty-state">
+          <mat-icon>folder_open</mat-icon>
+
+          <h3>Nenhum projeto encontrado</h3>
+
+          <p>Crie seu primeiro projeto para começar.</p>
+
+          <button
+            mat-flat-button
+            type="button"
+            (click)="openCreateForm()"
+          >
+            Criar projeto
+          </button>
+        </mat-card>
+      } @else {
+        <section class="projects-grid">
+          @for (project of projects(); track project.id) {
+            <mat-card class="project-card">
+              <div class="project-card-header">
+                <div class="project-icon">
+                  <mat-icon>folder</mat-icon>
+                </div>
+
+                <div class="project-actions">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Editar projeto"
+                    title="Editar"
+                    (click)="openEditForm(project)"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Excluir projeto"
+                    title="Excluir"
+                    (click)="deleteProject(project)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <h3>{{ project.name }}</h3>
+
+              <p>
+                {{ project.description || 'Projeto sem descrição.' }}
+              </p>
+
+              <span class="created-date">
+                Criado em:
+                {{ project.createdAt | date: 'dd/MM/yyyy' }}
+              </span>
+            </mat-card>
+          }
+        </section>
+      }
+    </main>
+  </div>
+</div>

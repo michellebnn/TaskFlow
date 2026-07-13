@@ -1,1 +1,278 @@
-<p>tasks-board works!</p>
+<div class="tasks-layout">
+  <app-sidebar />
+
+  <div class="main-area">
+    <app-header />
+
+    <main class="tasks-content">
+      <section class="page-header">
+        <div>
+          <h1>Tarefas</h1>
+          <p>Gerencie todas as tarefas dos seus projetos.</p>
+        </div>
+
+        <button
+          mat-flat-button
+          type="button"
+          (click)="openCreateForm()"
+        >
+          <mat-icon>add</mat-icon>
+          Nova tarefa
+        </button>
+      </section>
+
+      @if (errorMessage()) {
+        <p class="error-message">
+          {{ errorMessage() }}
+        </p>
+      }
+
+      @if (showForm()) {
+        <mat-card class="task-form-card">
+          <div class="form-header">
+            <h2>
+              {{
+                editingTaskId()
+                  ? 'Editar tarefa'
+                  : 'Nova tarefa'
+              }}
+            </h2>
+
+            <button
+              mat-icon-button
+              type="button"
+              aria-label="Fechar formulário"
+              (click)="closeForm()"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <form
+            [formGroup]="taskForm"
+            (ngSubmit)="saveTask()"
+          >
+            <mat-form-field appearance="outline">
+              <mat-label>Título</mat-label>
+
+              <input
+                matInput
+                type="text"
+                formControlName="title"
+              />
+
+              @if (
+                taskForm.controls.title.touched &&
+                taskForm.controls.title.hasError('required')
+              ) {
+                <mat-error>
+                  Informe o título da tarefa.
+                </mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Descrição</mat-label>
+
+              <textarea
+                matInput
+                rows="4"
+                formControlName="description"
+              ></textarea>
+            </mat-form-field>
+
+            <div class="form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Projeto</mat-label>
+
+                <mat-select formControlName="projectId">
+                  <mat-option [value]="0">
+                    Selecione um projeto
+                  </mat-option>
+
+                  @for (
+                    project of projects();
+                    track project.id
+                  ) {
+                    <mat-option [value]="project.id">
+                      {{ project.name }}
+                    </mat-option>
+                  }
+                </mat-select>
+
+                @if (
+                  taskForm.controls.projectId.touched &&
+                  taskForm.controls.projectId.invalid
+                ) {
+                  <mat-error>
+                    Selecione um projeto.
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+
+                <mat-select formControlName="status">
+                  <mat-option value="TODO">
+                    A fazer
+                  </mat-option>
+
+                  <mat-option value="IN_PROGRESS">
+                    Em andamento
+                  </mat-option>
+
+                  <mat-option value="DONE">
+                    Concluída
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Prioridade</mat-label>
+
+                <mat-select formControlName="priority">
+                  <mat-option value="LOW">
+                    Baixa
+                  </mat-option>
+
+                  <mat-option value="MEDIUM">
+                    Média
+                  </mat-option>
+
+                  <mat-option value="HIGH">
+                    Alta
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Data de entrega</mat-label>
+
+                <input
+                  matInput
+                  type="date"
+                  formControlName="dueDate"
+                />
+              </mat-form-field>
+            </div>
+
+            <div class="form-actions">
+              <button
+                mat-button
+                type="button"
+                (click)="closeForm()"
+              >
+                Cancelar
+              </button>
+
+              <button
+                mat-flat-button
+                type="submit"
+                [disabled]="saving()"
+              >
+                @if (saving()) {
+                  <mat-spinner diameter="22"></mat-spinner>
+                } @else {
+                  Salvar
+                }
+              </button>
+            </div>
+          </form>
+        </mat-card>
+      }
+
+      @if (loading()) {
+        <div class="loading-container">
+          <mat-spinner diameter="44"></mat-spinner>
+
+          <span>Carregando tarefas...</span>
+        </div>
+      } @else if (tasks().length === 0) {
+        <mat-card class="empty-state">
+          <mat-icon>assignment</mat-icon>
+
+          <h2>Nenhuma tarefa encontrada</h2>
+
+          <p>Crie sua primeira tarefa para começar.</p>
+
+          <button
+            mat-flat-button
+            type="button"
+            (click)="openCreateForm()"
+          >
+            Criar tarefa
+          </button>
+        </mat-card>
+      } @else {
+        <section class="tasks-list">
+          @for (task of tasks(); track task.id) {
+            <mat-card class="task-card">
+              <div class="task-header">
+                <div>
+                  <h2>{{ task.title }}</h2>
+
+                  <p>
+                    {{
+                      task.description ||
+                        'Tarefa sem descrição.'
+                    }}
+                  </p>
+                </div>
+
+                <div class="actions">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Editar tarefa"
+                    title="Editar"
+                    (click)="openEditForm(task)"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Excluir tarefa"
+                    title="Excluir"
+                    (click)="deleteTask(task)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <div class="task-info">
+                <span>
+                  <strong>Projeto:</strong>
+                  {{ task.project.name }}
+                </span>
+
+                <span>
+                  <strong>Status:</strong>
+                  {{ getStatusLabel(task.status) }}
+                </span>
+
+                <span>
+                  <strong>Prioridade:</strong>
+                  {{ getPriorityLabel(task.priority) }}
+                </span>
+
+                @if (task.dueDate) {
+                  <span>
+                    <strong>Entrega:</strong>
+                    {{
+                      task.dueDate
+                        | date: 'dd/MM/yyyy'
+                    }}
+                  </span>
+                }
+              </div>
+            </mat-card>
+          }
+        </section>
+      }
+    </main>
+  </div>
+</div>
