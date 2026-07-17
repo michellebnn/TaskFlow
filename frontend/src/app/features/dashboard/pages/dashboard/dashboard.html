@@ -11,9 +11,13 @@
       </section>
 
       @if (loading()) {
-        <p class="status-message">Carregando dados...</p>
+        <p class="status-message">
+          Carregando dados...
+        </p>
       } @else if (errorMessage()) {
-        <p class="error-message">{{ errorMessage() }}</p>
+        <p class="error-message">
+          {{ errorMessage() }}
+        </p>
       } @else {
         <section class="summary-grid">
           <mat-card class="summary-card">
@@ -21,7 +25,7 @@
               <mat-icon>folder</mat-icon>
             </div>
 
-            <div>
+            <div class="summary-info">
               <span>Projetos</span>
               <strong>{{ summary().projects }}</strong>
             </div>
@@ -32,7 +36,7 @@
               <mat-icon>pending_actions</mat-icon>
             </div>
 
-            <div>
+            <div class="summary-info">
               <span>Tarefas pendentes</span>
               <strong>{{ summary().pendingTasks }}</strong>
             </div>
@@ -43,9 +47,11 @@
               <mat-icon>sync</mat-icon>
             </div>
 
-            <div>
+            <div class="summary-info">
               <span>Em andamento</span>
-              <strong>{{ summary().inProgressTasks }}</strong>
+              <strong>
+                {{ summary().inProgressTasks }}
+              </strong>
             </div>
           </mat-card>
 
@@ -54,26 +60,106 @@
               <mat-icon>check_circle</mat-icon>
             </div>
 
-            <div>
+            <div class="summary-info">
               <span>Concluídas</span>
-              <strong>{{ summary().completedTasks }}</strong>
+              <strong>
+                {{ summary().completedTasks }}
+              </strong>
             </div>
           </mat-card>
         </section>
-      }
 
-      <mat-card class="recent-card">
-        <h3>Atividade recente</h3>
+        <mat-card class="recent-card">
+          <div class="recent-header">
+            <div>
+              <h3>Atividade recente</h3>
+              <p>Últimas tarefas criadas.</p>
+            </div>
 
-        <div class="activity">
-          <mat-icon>task_alt</mat-icon>
-
-          <div>
-            <strong>Criar tela de Login</strong>
-            <p>Tarefa criada no projeto TaskFlow.</p>
+            <span class="activity-count">
+              {{ recentTasks().length }}
+            </span>
           </div>
-        </div>
-      </mat-card>
+
+          @if (recentTasks().length === 0) {
+            <div class="empty-activity">
+              <mat-icon>history</mat-icon>
+
+              <div>
+                <strong>Nenhuma atividade recente</strong>
+                <p>
+                  As tarefas criadas aparecerão aqui.
+                </p>
+              </div>
+            </div>
+          } @else {
+            <div class="activity-list">
+              @for (
+                task of recentTasks();
+                track task.id
+              ) {
+                <div class="activity">
+                  <div
+                    class="activity-icon"
+                    [class.todo]="task.status === 'TODO'"
+                    [class.in-progress]="
+                      task.status === 'IN_PROGRESS'
+                    "
+                    [class.done]="task.status === 'DONE'"
+                  >
+                    <mat-icon>
+                      {{
+                        task.status === 'DONE'
+                          ? 'task_alt'
+                          : task.status === 'IN_PROGRESS'
+                            ? 'sync'
+                            : 'assignment'
+                      }}
+                    </mat-icon>
+                  </div>
+
+                  <div class="activity-content">
+                    <div class="activity-title">
+                      <strong>{{ task.title }}</strong>
+
+                      <span
+                        class="status-chip"
+                        [class.status-todo]="
+                          task.status === 'TODO'
+                        "
+                        [class.status-progress]="
+                          task.status === 'IN_PROGRESS'
+                        "
+                        [class.status-done]="
+                          task.status === 'DONE'
+                        "
+                      >
+                        {{ getStatusLabel(task) }}
+                      </span>
+                    </div>
+
+                    <p>
+                      Tarefa criada no projeto
+                      <strong>
+                        {{ task.project.name }}
+                      </strong>
+                    </p>
+
+                    <span class="activity-date">
+                      <mat-icon>schedule</mat-icon>
+
+                      {{
+                        task.createdAt
+                          | date: 'dd/MM/yyyy HH:mm'
+                      }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </mat-card>
+      }
     </main>
   </div>
 </div>

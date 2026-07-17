@@ -44,12 +44,16 @@
 }
 
 .summary-card {
+  min-height: 150px;
   padding: 24px;
 
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 18px;
+  justify-content: center;
+  gap: 14px;
 
+  text-align: center;
   border-radius: 18px;
 
   .card-icon {
@@ -64,46 +68,232 @@
     background: var(--mat-sys-primary-container);
     color: var(--mat-sys-on-primary-container);
   }
+}
+
+.summary-info {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   span {
     display: block;
     margin-bottom: 5px;
+
     color: var(--mat-sys-on-surface-variant);
+    text-align: center;
   }
 
   strong {
+    display: block;
+
     font-size: 30px;
+    line-height: 1;
+    text-align: center;
   }
 }
 
 .recent-card {
   padding: 28px;
   border-radius: 18px;
+}
+
+.recent-header {
+  margin-bottom: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 
   h3 {
-    margin: 0 0 24px;
+    margin: 0 0 5px;
     font-size: 20px;
   }
+
+  p {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.activity-count {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .activity {
   padding: 16px;
 
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
 
   background: var(--mat-sys-surface-container-low);
   border-radius: 14px;
+}
+
+.activity-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  &.todo {
+    background: #fff3cd;
+    color: #7a5700;
+  }
+
+  &.in-progress {
+    background: #dbeafe;
+    color: #174ea6;
+  }
+
+  &.done {
+    background: #d9f7e5;
+    color: #176b3a;
+  }
+}
+
+.activity-content {
+  min-width: 0;
+  flex: 1;
+
+  > p {
+    margin: 6px 0 8px;
+    color: var(--mat-sys-on-surface-variant);
+
+    strong {
+      color: var(--mat-sys-on-surface);
+    }
+  }
+}
+
+.activity-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  > strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.status-chip {
+  flex-shrink: 0;
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-todo {
+  background: #fff3cd;
+  color: #7a5700;
+}
+
+.status-progress {
+  background: #dbeafe;
+  color: #174ea6;
+}
+
+.status-done {
+  background: #d9f7e5;
+  color: #176b3a;
+}
+
+.activity-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
 
   mat-icon {
+    width: 15px;
+    height: 15px;
+    font-size: 15px;
+  }
+}
+
+.empty-activity {
+  min-height: 150px;
+  padding: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+
+  text-align: left;
+
+  border: 2px dashed
+    var(--mat-sys-outline-variant);
+  border-radius: 14px;
+
+  > mat-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 44px;
     color: var(--mat-sys-primary);
   }
 
+  strong {
+    display: block;
+    margin-bottom: 5px;
+  }
+
   p {
-    margin: 4px 0 0;
+    margin: 0;
     color: var(--mat-sys-on-surface-variant);
   }
+}
+
+.status-message,
+.error-message {
+  margin: 24px 0;
+  padding: 18px;
+  border-radius: 12px;
+}
+
+.status-message {
+  background: var(--mat-sys-surface-container);
+}
+
+.error-message {
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
 }
 
 @media (max-width: 1100px) {
@@ -124,20 +314,24 @@
   .summary-grid {
     grid-template-columns: 1fr;
   }
+
+  .activity-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+
+    > strong {
+      white-space: normal;
+    }
+  }
 }
 
-.status-message,
-.error-message {
-  margin: 24px 0;
-  padding: 18px;
-  border-radius: 12px;
-}
+@media (max-width: 500px) {
+  .recent-card {
+    padding: 20px;
+  }
 
-.status-message {
-  background: var(--mat-sys-surface-container);
-}
-
-.error-message {
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  .activity {
+    flex-direction: column;
+  }
 }

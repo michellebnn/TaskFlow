@@ -7,8 +7,11 @@
     <main class="tasks-content">
       <section class="page-header">
         <div>
-          <h1>Tarefas</h1>
-          <p>Gerencie todas as tarefas dos seus projetos.</p>
+          <h1>Kanban de tarefas</h1>
+          <p>
+            Arraste as tarefas entre as colunas para alterar o
+            status.
+          </p>
         </div>
 
         <button
@@ -182,35 +185,194 @@
         </mat-card>
       }
 
+      <mat-card class="filters-card">
+        <div class="filters-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Pesquisar</mat-label>
+
+            <mat-icon matPrefix>search</mat-icon>
+
+            <input
+              matInput
+              type="text"
+              placeholder="Título ou descrição"
+              [value]="searchTerm()"
+              (input)="updateSearchTerm($event)"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Projeto</mat-label>
+
+            <mat-select
+              [value]="selectedProjectId()"
+              (valueChange)="updateProjectFilter($event)"
+            >
+              <mat-option [value]="0">
+                Todos os projetos
+              </mat-option>
+
+              @for (
+                project of projects();
+                track project.id
+              ) {
+                <mat-option [value]="project.id">
+                  {{ project.name }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Status</mat-label>
+
+            <mat-select
+              [value]="selectedStatus()"
+              (valueChange)="updateStatusFilter($event)"
+            >
+              <mat-option value="">
+                Todos os status
+              </mat-option>
+
+              <mat-option value="TODO">
+                A fazer
+              </mat-option>
+
+              <mat-option value="IN_PROGRESS">
+                Em andamento
+              </mat-option>
+
+              <mat-option value="DONE">
+                Concluída
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Prioridade</mat-label>
+
+            <mat-select
+              [value]="selectedPriority()"
+              (valueChange)="updatePriorityFilter($event)"
+            >
+              <mat-option value="">
+                Todas as prioridades
+              </mat-option>
+
+              <mat-option value="LOW">
+                Baixa
+              </mat-option>
+
+              <mat-option value="MEDIUM">
+                Média
+              </mat-option>
+
+              <mat-option value="HIGH">
+                Alta
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="filters-footer">
+          <span>
+            {{ filteredTasks().length }}
+            tarefa(s) encontrada(s)
+          </span>
+
+          <button
+            mat-button
+            type="button"
+            (click)="clearFilters()"
+          >
+            <mat-icon>filter_alt_off</mat-icon>
+            Limpar filtros
+          </button>
+        </div>
+      </mat-card>
+
       @if (loading()) {
         <div class="loading-container">
           <mat-spinner diameter="44"></mat-spinner>
-
           <span>Carregando tarefas...</span>
         </div>
-      } @else if (tasks().length === 0) {
-        <mat-card class="empty-state">
-          <mat-icon>assignment</mat-icon>
-
-          <h2>Nenhuma tarefa encontrada</h2>
-
-          <p>Crie sua primeira tarefa para começar.</p>
-
-          <button
-            mat-flat-button
-            type="button"
-            (click)="openCreateForm()"
-          >
-            Criar tarefa
-          </button>
-        </mat-card>
       } @else {
-        <section class="tasks-list">
-          @for (task of tasks(); track task.id) {
-            <mat-card class="task-card">
-              <div class="task-header">
-                <div>
-                  <h2>{{ task.title }}</h2>
+        <section
+          class="kanban-board"
+          cdkDropListGroup
+        >
+          <article class="kanban-column todo-column">
+            <header class="column-header">
+              <div>
+                <span class="column-indicator"></span>
+                <h2>A fazer</h2>
+              </div>
+
+              <span class="task-count">
+                {{ todoTasks().length }}
+              </span>
+            </header>
+
+            <div
+              class="drop-zone"
+              cdkDropList
+              [cdkDropListData]="todoTasks()"
+              (cdkDropListDropped)="
+                onTaskDrop($event, 'TODO')
+              "
+            >
+              @for (task of todoTasks(); track task.id) {
+                <mat-card
+                  class="kanban-card"
+                  cdkDrag
+                  [cdkDragData]="task"
+                  [class.updating]="
+                    updatingTaskId() === task.id
+                  "
+                >
+                  <div
+                    class="drag-placeholder"
+                    *cdkDragPlaceholder
+                  ></div>
+
+                  <div class="card-top">
+                    <span
+                      class="priority-chip"
+                      [class.priority-low]="
+                        task.priority === 'LOW'
+                      "
+                      [class.priority-medium]="
+                        task.priority === 'MEDIUM'
+                      "
+                      [class.priority-high]="
+                        task.priority === 'HIGH'
+                      "
+                    >
+                      {{ getPriorityLabel(task.priority) }}
+                    </span>
+
+                    <div class="actions">
+                      <button
+                        mat-icon-button
+                        type="button"
+                        aria-label="Editar tarefa"
+                        (click)="openEditForm(task)"
+                      >
+                        <mat-icon>edit</mat-icon>
+                      </button>
+
+                      <button
+                        mat-icon-button
+                        type="button"
+                        aria-label="Excluir tarefa"
+                        (click)="deleteTask(task)"
+                      >
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  <h3>{{ task.title }}</h3>
 
                   <p>
                     {{
@@ -218,59 +380,291 @@
                         'Tarefa sem descrição.'
                     }}
                   </p>
-                </div>
 
-                <div class="actions">
-                  <button
-                    mat-icon-button
-                    type="button"
-                    aria-label="Editar tarefa"
-                    title="Editar"
-                    (click)="openEditForm(task)"
-                  >
-                    <mat-icon>edit</mat-icon>
-                  </button>
+                  <div class="card-footer">
+                    <span>
+                      <mat-icon>folder</mat-icon>
+                      {{ task.project.name }}
+                    </span>
 
-                  <button
-                    mat-icon-button
-                    type="button"
-                    aria-label="Excluir tarefa"
-                    title="Excluir"
-                    (click)="deleteTask(task)"
-                  >
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                    @if (task.dueDate) {
+                      <span>
+                        <mat-icon>event</mat-icon>
+
+                        {{
+                          task.dueDate
+                            | date: 'dd/MM/yyyy'
+                        }}
+                      </span>
+                    }
+
+                    @if (getDueDateLabel(task)) {
+                      <div
+                        class="due-date-warning"
+                        [class.overdue]="
+                          getDueDateClass(task) ===
+                          'overdue'
+                        "
+                        [class.today]="
+                          getDueDateClass(task) ===
+                          'today'
+                        "
+                        [class.soon]="
+                          getDueDateClass(task) ===
+                          'soon'
+                        "
+                      >
+                        <mat-icon>warning</mat-icon>
+
+                        {{ getDueDateLabel(task) }}
+                      </div>
+                    }
+                  </div>
+                </mat-card>
+              } @empty {
+                <div class="empty-column">
+                  Solte uma tarefa aqui
                 </div>
+              }
+            </div>
+          </article>
+
+          <article class="kanban-column progress-column">
+            <header class="column-header">
+              <div>
+                <span class="column-indicator"></span>
+                <h2>Em andamento</h2>
               </div>
 
-              <div class="task-info">
-                <span>
-                  <strong>Projeto:</strong>
-                  {{ task.project.name }}
-                </span>
+              <span class="task-count">
+                {{ inProgressTasks().length }}
+              </span>
+            </header>
 
-                <span>
-                  <strong>Status:</strong>
-                  {{ getStatusLabel(task.status) }}
-                </span>
+            <div
+              class="drop-zone"
+              cdkDropList
+              [cdkDropListData]="inProgressTasks()"
+              (cdkDropListDropped)="
+                onTaskDrop($event, 'IN_PROGRESS')
+              "
+            >
+              @for (
+                task of inProgressTasks();
+                track task.id
+              ) {
+                <mat-card
+                  class="kanban-card"
+                  cdkDrag
+                  [cdkDragData]="task"
+                  [class.updating]="
+                    updatingTaskId() === task.id
+                  "
+                >
+                  <div
+                    class="drag-placeholder"
+                    *cdkDragPlaceholder
+                  ></div>
 
-                <span>
-                  <strong>Prioridade:</strong>
-                  {{ getPriorityLabel(task.priority) }}
-                </span>
+                  <div class="card-top">
+                    <span
+                      class="priority-chip"
+                      [class.priority-low]="
+                        task.priority === 'LOW'
+                      "
+                      [class.priority-medium]="
+                        task.priority === 'MEDIUM'
+                      "
+                      [class.priority-high]="
+                        task.priority === 'HIGH'
+                      "
+                    >
+                      {{ getPriorityLabel(task.priority) }}
+                    </span>
 
-                @if (task.dueDate) {
-                  <span>
-                    <strong>Entrega:</strong>
+                    <div class="actions">
+                      <button
+                        mat-icon-button
+                        type="button"
+                        aria-label="Editar tarefa"
+                        (click)="openEditForm(task)"
+                      >
+                        <mat-icon>edit</mat-icon>
+                      </button>
+
+                      <button
+                        mat-icon-button
+                        type="button"
+                        aria-label="Excluir tarefa"
+                        (click)="deleteTask(task)"
+                      >
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  <h3>{{ task.title }}</h3>
+
+                  <p>
                     {{
-                      task.dueDate
-                        | date: 'dd/MM/yyyy'
+                      task.description ||
+                        'Tarefa sem descrição.'
                     }}
-                  </span>
-                }
+                  </p>
+
+                  <div class="card-footer">
+                    <span>
+                      <mat-icon>folder</mat-icon>
+                      {{ task.project.name }}
+                    </span>
+
+                    @if (task.dueDate) {
+                      <span>
+                        <mat-icon>event</mat-icon>
+
+                        {{
+                          task.dueDate
+                            | date: 'dd/MM/yyyy'
+                        }}
+                      </span>
+                    }
+
+                    @if (getDueDateLabel(task)) {
+                      <div
+                        class="due-date-warning"
+                        [class.overdue]="
+                          getDueDateClass(task) ===
+                          'overdue'
+                        "
+                        [class.today]="
+                          getDueDateClass(task) ===
+                          'today'
+                        "
+                        [class.soon]="
+                          getDueDateClass(task) ===
+                          'soon'
+                        "
+                      >
+                        <mat-icon>warning</mat-icon>
+
+                        {{ getDueDateLabel(task) }}
+                      </div>
+                    }
+                  </div>
+                </mat-card>
+              } @empty {
+                <div class="empty-column">
+                  Solte uma tarefa aqui
+                </div>
+              }
+            </div>
+          </article>
+
+          <article class="kanban-column done-column">
+            <header class="column-header">
+              <div>
+                <span class="column-indicator"></span>
+                <h2>Concluídas</h2>
               </div>
-            </mat-card>
-          }
+
+              <span class="task-count">
+                {{ doneTasks().length }}
+              </span>
+            </header>
+
+            <div
+              class="drop-zone"
+              cdkDropList
+              [cdkDropListData]="doneTasks()"
+              (cdkDropListDropped)="
+                onTaskDrop($event, 'DONE')
+              "
+            >
+              @for (task of doneTasks(); track task.id) {
+                <mat-card
+                  class="kanban-card"
+                  cdkDrag
+                  [cdkDragData]="task"
+                  [class.updating]="
+                    updatingTaskId() === task.id
+                  "
+                >
+                  <div
+                    class="drag-placeholder"
+                    *cdkDragPlaceholder
+                  ></div>
+
+                  <div class="card-top">
+                    <span
+                      class="priority-chip"
+                      [class.priority-low]="
+                        task.priority === 'LOW'
+                      "
+                      [class.priority-medium]="
+                        task.priority === 'MEDIUM'
+                      "
+                      [class.priority-high]="
+                        task.priority === 'HIGH'
+                      "
+                    >
+                      {{ getPriorityLabel(task.priority) }}
+                    </span>
+
+                    <div class="actions">
+                      <button
+                        mat-icon-button
+                        type="button"
+                        aria-label="Editar tarefa"
+                        (click)="openEditForm(task)"
+                      >
+                        <mat-icon>edit</mat-icon>
+                      </button>
+
+                      <button
+                        mat-icon-button
+                        type="button"
+                        aria-label="Excluir tarefa"
+                        (click)="deleteTask(task)"
+                      >
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  <h3>{{ task.title }}</h3>
+
+                  <p>
+                    {{
+                      task.description ||
+                        'Tarefa sem descrição.'
+                    }}
+                  </p>
+
+                  <div class="card-footer">
+                    <span>
+                      <mat-icon>folder</mat-icon>
+                      {{ task.project.name }}
+                    </span>
+
+                    @if (task.dueDate) {
+                      <span>
+                        <mat-icon>event</mat-icon>
+
+                        {{
+                          task.dueDate
+                            | date: 'dd/MM/yyyy'
+                        }}
+                      </span>
+                    }
+                  </div>
+                </mat-card>
+              } @empty {
+                <div class="empty-column">
+                  Solte uma tarefa aqui
+                </div>
+              }
+            </div>
+          </article>
         </section>
       }
     </main>
